@@ -52,10 +52,6 @@ const updateStudentResponse  = asyncHandler(async(req,res)=>{
   const {callStatus,response,reason,interests,followUpDate} = req.body
   
   const id  = req.params?.id;
-  console.log(id);
-  console.log(callStatus,response,reason,interests,followUpDate);
-  
-
   const updateData ={}
 
   if(callStatus!==undefined) updateData.callStatus = callStatus;
@@ -91,8 +87,13 @@ const findAllocatedStudentPerWorker = asyncHandler(async(req,res)=>{
 
 const findAllStudentAssignToAParticularWorker = asyncHandler(async (req, res) => {
   const id = req.params?.id;
+  const status = req.query?.status || "";  // Dynamic status from query parameter
+  const page = parseInt(req.query?.page) || 1;  // Current page, default to 1
+  const limit = parseInt(req.query?.limit) || 10;  // Number of items per page, default to 10
+
+  // Find worker by ID
   const worker = await Worker.findById(id);
-  
+
   // Check if worker is found
   if (!worker) {
     throw new ApiError(400, "Worker not found");
@@ -103,19 +104,30 @@ const findAllStudentAssignToAParticularWorker = asyncHandler(async (req, res) =>
     throw new ApiError(400, "Worker range is not defined");
   }
 
-  // Find students within the specified range
-  const students = await Student.find({
+  // Prepare the filter based on the worker's range and dynamic status
+  let filter = {
     studentid: {
       $gte: worker.start_range,
       $lte: worker.end_range
     }
-  });
+  };
 
-  for(let stu of students){
-    stu.workerId = worker._id
-    await stu.save({validateBeforeSave:true})
+  // Add status to filter if provided
+  if (status) {
+    filter.callStatus = status;
   }
-  
+
+  // Find students based on range and status (if provided) with pagination
+  const totalStudents = await Student.countDocuments(filter); // Total number of students
+  const students = await Student.find(filter)
+    .skip((page - 1) * limit)  // Skip records for previous pages
+    .limit(limit);  // Limit the number of records per page
+
+  // Assign workerId to each student and save them
+  for (let stu of students) {
+    stu.workerId = worker._id;
+    await stu.save({ validateBeforeSave: true });
+  }
 
   // Check if students are found
   if (students.length <= 0) {
@@ -123,8 +135,15 @@ const findAllStudentAssignToAParticularWorker = asyncHandler(async (req, res) =>
   }
 
   // Return the students in the response
-  return res.status(200).json(new ApiResponse(200, "Fetched data successfully", students));
+  return res.status(200).json({
+    status: 200,
+    message: "Fetched data successfully",
+    data: students,
+    totalPages: Math.ceil(totalStudents / limit),  // Total number of pages
+    currentPage: page  // Current page
+  });
 });
+
 
 
 const getAllStudentInfo = asyncHandler(async(req,res)=>{
@@ -150,6 +169,7 @@ const deleteStudent = asyncHandler(async(req,res)=>{
   return res.status(200).json(new ApiResponse(200,"Student delete successfully ",{}));
   
 })
+
 
 
 

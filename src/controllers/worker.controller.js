@@ -92,7 +92,7 @@ const rejisterWorker = asyncHandler(async (req, res) => {
 
 const login = asyncHandler(async (req, res) => {
   const { password, email } = req.body
-  console.log(password,email);
+
   
   if (!password || !email) {
     throw new ApiError(400, "All fields are required");
@@ -217,7 +217,7 @@ const updateWorkerDetails = asyncHandler(async(req,res)=>{
   
   const updateDetails = {};
 
-  console.log(password,start,end);
+ 
   
   // Add fields to update only if they are defined in the request
   // if (password !== undefined && password!=="") updateDetails.password = password;
@@ -233,7 +233,7 @@ const updateWorkerDetails = asyncHandler(async(req,res)=>{
   if (!work) {
     throw new ApiError(400, "Worker not updated");
   }
-  console.log(work);
+ 
   
 
   return res.status(200).json(new ApiResponse(200, "Worker updated successfully", work));
