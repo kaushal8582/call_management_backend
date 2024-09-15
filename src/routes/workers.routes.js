@@ -1,6 +1,6 @@
 import {Router} from "express"
 import { verifyAdmin, verifyJWT } from "../middleware/auth.middleware.js";
-import { addAdmin, allocateStudentOnWorker, deletWorker, findAllWorker, login, logout, rejisterWorker, updateWorkerDetails } from "../controllers/worker.controller.js";
+import { addAdmin, allocateStudentOnWorker, deletWorker, findAllWorker, login, logout, rejisterWorker, updateWorkerDetails, verify } from "../controllers/worker.controller.js";
 
 
 const router = Router();
@@ -14,6 +14,7 @@ router.route("/logout").get(verifyJWT,logout);
 router.route("/delete-worker/:id").get(verifyJWT,verifyAdmin,deletWorker);
 router.route("/findall-worker").get(verifyJWT,verifyAdmin,findAllWorker);
 router.route("/update-worker/:id").post(verifyJWT,verifyAdmin,updateWorkerDetails)
+router.route("/verifyJWT").get(verifyJWT,verify)
 
 
 export default router;

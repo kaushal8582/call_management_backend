@@ -101,13 +101,14 @@ const login = asyncHandler(async (req, res) => {
   const user = await Worker.findOne({ email })
 
   if (!user) {
-    throw new ApiError(400, "User Not found");
+    // throw new ApiError(400, "User Not found");
+    return res.status(400).json(new ApiResponse(400,"User not found",{}))
   }
 
   const isCorrectPassword = await user.isCorrectPassword(password)
 
   if (!isCorrectPassword) {
-    throw new ApiError(400, "wrong password ");
+    return res.status(400).json(new ApiResponse(400,"Wrong Password",{}))
   }
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
   const loggedInWorker = await Worker.findById(user._id).select("-refreshToken -password")
@@ -239,6 +240,9 @@ const updateWorkerDetails = asyncHandler(async(req,res)=>{
   return res.status(200).json(new ApiResponse(200, "Worker updated successfully", work));
 });
 
+const verify = asyncHandler(async(req,res)=>{
+  return res.status(200).json(new ApiResponse(200, "verifyJWT", {}));
+})
 
 
 
@@ -252,5 +256,6 @@ export {
   deletWorker,
   findAllWorker,
   updateWorkerDetails,
+  verify
 }
 
